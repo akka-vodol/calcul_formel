@@ -1,0 +1,21 @@
+let simplifieExpr expression =		(* Simplification d'une expr *)
+	let rec aux ex = match ex with
+		| Plus(a, Int(0)) | Plus(Int(0), a) | Mult(Int(1), a) | Mult(a, Int(1)) | Div(a, Int(1)) | Oppose(Oppose(a)) -> let (e,_) = aux a in (e, true)
+		| Mult(Int(0), a) | Mult(a, Int(0))  -> (Int(0), true)
+		| Minus(a, b) when a = b -> (Int(0), true)
+		| Plus(a, b) -> let (e1, b1) = aux a in let (e2, b2) = aux b in (Plus(e1, e2), b1||b2)
+		| Mult(a, b) -> let (e1, b1) = aux a in let (e2, b2) = aux b in (Mult(e1, e2), b1||b2)
+		| Minus(a, b) -> let (e1, b1) = aux a in let (e2, b2) = aux b in (Minus(e1, e2), b1||b2)
+		| Div(a, b) -> let (e1, b1) = aux a in let (e2, b2) = aux b in (Div(e1, e2), b1||b2)
+		| Exp(a) -> let (e, b) = aux a in (Exp(e), b)
+		| _ -> (ex, false)
+	in 
+	let e = ref expression in
+	let continue = ref true in
+	while !continue do
+		match (aux !e)  with
+			| (ex, true) -> e := ex
+			| _ -> continue := false
+	done;
+	!e	
+;;
