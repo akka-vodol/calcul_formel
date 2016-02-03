@@ -83,7 +83,12 @@ let rec dev_var v exp = match exp with
 (*une fois sous forme de poly, on simplifie les coefficients*)
 let rec simplifier_poly p = match p with
  |Zero -> print_string("0")
- |Sum (c, v, i, p2) -> Sum ((simplifieExpr c), v, i, (simplifier_poly p2))
+  |Sum (c, v, i, p2) ->
+  begin
+  match simplifieExpr c with
+  |0 -> simplifier_poly p2
+  |c2 -> Sum (c2, v, i, (simplifier_poly p2))
+  end
 ;; 
 
 (*une fonction qui reconvertit le polynome en expression*)
