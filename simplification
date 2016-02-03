@@ -23,3 +23,71 @@ let simplifieExpr expression =		(* Simplification d'une expr *)
 	done;
 	!e	
 ;;
+
+
+(*on simplifie par rapport à une variable*)
+(*l'expression est decomposee en un polynome de la variable*)
+
+type poly = |Zero
+|Sum of expr*expr*int*poly;;
+(*Sum (coeff, monome, reste du poly) = coeff*monome + reste du poly*)
+(*le monome sera par exemple x, x², x^n. C'est une expression pour qu'il puisse être 1/(x²+1) par exemple*)
+(*i est le degré du monome. si monome = x², i = 2*)
+
+(*negation d'un polynome*)
+let rec neg_poly poly = match poly with
+ |Sum (c, a, i, pb) -> Sum ((Oppose c), a, i,(neg_poly pb))
+ |Zero -> Zero
+;;
+
+(*addition de deux polynomes*)
+let rec sum_poly pa pb = match pa, pb with
+ |Zero, pb -> pb
+ |pa, Zero -> pa
+ |Sum (ca, va, ia, pa2), Sum (cb, vb, ib, pb2) when ia < ib -> Sum (cb, vb, ib, (sum_poly pa pb2))
+ |Sum (ca, va, ia, pa2), Sum (cb, vb, ib, pb2) when ia > ib -> Sum (ca, va, ia, (sum_poly pb pa2))
+ |Sum (ca, va, ia, pa2), Sum (cb, vb, ib, pb2) when va = vb -> Sum ((Plus (ca, cb)), va, ia, (sum_poly pa2 pb2))
+ (*La ligne suivante est à améliorer*)
+ |Sum (ca, va, ia, pa2), Sum (cb, vb, ib, pb2) -> Sum (cb, vb, ib, (sum_poly pa pb2))
+;;
+
+(*idée pour plus tard : à la place des indices, avoir une fonction qui classe les monomes.*)
+(* Elle compare deux monomes par leur indice, puis par un autre critere*)
+(*les polynomes sont toujours constitués de monomes dans l'odre décroissant, donc cela simplifie la fonction ci-dessus*)
+
+(*multiplication par un monome*)
+let rec mon_mult ca va ia p = match p with
+ |Zero -> Zero
+ |Sum (c, v, i, p2) -> Sum ((Mult (ca, c)), (Mult (va, v)), (ia + i), (mon_mult ca va ia p2))
+;;
+
+(*multiplication de deux polynomes*)
+(*(a*X^n + Q)P = (a*X^n)P + QP*)
+let rec mult_poly pa pb = match pa with
+ |Zero -> Zero
+ |Sum (c, v, i, p2) -> sum_poly (mon_mult c v i pb) (mult_poly p2 pb)
+;;
+
+let rec dev_var v exp = match exp with
+ |Var s when s = v -> Sum ((Int 1), (Var s), 1, Zero)
+ |Var s -> Sum ((Var s), (Int 1), 0, Zero) (*les variables autre que v sont des constantes*)
+ |Int i -> Sum ((Int i), (Int 1), 0, Zero)
+ |Oppose a -> neg_poly (dev_var v a)
+ |Plus (a, b) -> sum_poly (dev_var v a) (dev_var v b) 
+ |Mult (a, b) -> mult_poly (dev_var v a) (dev_var v b)
+ |Minus (a, b) -> dev_var v (Plus ((Oppose a), b))
+ |Div _ -> failwith "j'ai eu la flemme de programer la division"
+ |Exp exp2 -> dev_var v exp2
+;;
+
+(*une fois sous forme de poly, on simplifie les coefficients*)
+let rec simplifier_poly p = match p with
+ |Zero -> print_string("0")
+ |Sum (c, v, i, p2) -> Sum ((simplifieExpr c), v, i, (simplifier_poly p2))
+;; 
+
+(*une fonction qui reconvertit le polynome en expression*)
+let poly_to_expr p = match p with
+ |Zero -> Int(0)
+ |Sum (c, v, i, p2) -> Plus ((Mult (c, v)), (poly_to_expr p2))
+;;
