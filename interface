@@ -45,3 +45,25 @@ print_string (toStringExpr a);;
 print_string "\n";;
 print_string (toStringExpr c);;
 print_string "\n";;
+
+(*une fonction pour afficher des polynomes*)
+let rec afficher_poly p = match p with
+ |Zero -> ()
+ |Sum (c, v, i, p2) when i >= 0-> 
+  print_string("[");
+  affExpr c;
+  print_string("]");
+  print_string("*");
+  print_string("X^");
+  print_int(i);
+  print_string(" + ");
+  afficher_poly p2
+ |Sum (c, v, i, p2) -> 
+  print_string("[");
+  affExpr c;
+  print_string("]");
+  print_string("*");
+  affExpr v;
+  print_string(" + ");
+  afficher_poly p2
+ ;;
