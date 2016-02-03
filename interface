@@ -1,0 +1,47 @@
+(* Definition des fonctions d'affichage *)
+
+let addStr ajout radical = String.concat "" [radical; ajout];;  (* Simplification de la fonction de concatenation d'Ocaml *)
+let concatStr strList = String.concat "" strList;;
+
+let rec affExpr ex = match ex with	(* Affiche une expr *)
+	| Oppose(a) -> print_string "-"; affExpr a
+	| Plus(a, b) -> print_string "("; affExpr a; print_string " + "; affExpr b; print_string ")"
+	| Mult(a, b) -> affExpr a; print_string "*"; affExpr b; 
+	| Minus(a, b) ->print_string "("; affExpr a; print_string " - "; affExpr b; print_string ")"
+	| Div(a, b) -> print_string "("; affExpr a; print_string " / "; affExpr b; print_string ")"
+	| Var(x) -> print_string x
+	| Int(x) -> print_int x
+	| Exp(a) -> print_string "exp("; affExpr a; print_string ")"
+;;
+
+let rec toStringExpr ex = match ex with
+	| Oppose(a) -> concatStr ["-"; toStringExpr a]
+	| Plus(a, b) -> concatStr ["("; toStringExpr a; " + "; toStringExpr b; ")"]
+	| Minus(a, b) -> concatStr ["("; toStringExpr a; " - "; toStringExpr b; ")"]
+	| Mult(a, b) -> concatStr [toStringExpr a; "*"; toStringExpr b]
+	| Div(a, b) -> concatStr ["("; toStringExpr a; " / "; toStringExpr b; ")"]
+	| Var(x) -> x
+	| Int(x) -> string_of_int x
+	| Exp(a) -> concatStr ["exp("; toStringExpr a; ")"]
+;;
+
+let affFun f = match f with	(* Affiche une func *)
+	| Fonction(nom, var, ex) -> print_string (String.concat "" [nom; " : "; var; " -> "]); affExpr ex; print_string "\n"
+;;
+
+
+(**************************************************************************************************************************************)
+(* Exemples *)
+
+let a = Mult(Int(3), Plus(Var("x"), Int(0)));;
+let b = Plus(Mult(Int(3), Var("x")), Int(0));;
+let ex = Minus(Exp(a), Exp(b));;
+
+let f = simplifie (derive (Fonction("f", "x", Mult(Var("x"), Var("x")))));;
+
+let c = evalue a (Var("x")) (Int(100));;
+
+print_string (toStringExpr a);;
+print_string "\n";;
+print_string (toStringExpr c);;
+print_string "\n";;
