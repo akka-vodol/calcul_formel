@@ -1,0 +1,57 @@
+(* Definition des objets de base et des fonctions auxiliaires *)
+
+type expr =					(* La structure qui represente les expressions formelles *) 
+	| Int of int
+	| Var of string
+	| Oppose of expr
+	| Plus of expr*expr
+	| Mult of expr*expr
+	| Minus of expr*expr	
+	| Div of expr*expr
+	| Exp of expr
+;;
+
+type func = Fonction of string*string*expr;;	(* Une fonction est definie par son nom, sa variable et son expression *) 
+
+let getNom f = match f with
+	| Fonction(nom,_,_) -> nom		(* Renvoie le nom de la func en parametre *)
+;;
+
+let getVar f = match f with			(* Renvoie le nom de la variable de la func en parametre *)
+	| Fonction(_, var, _) -> var
+;;
+
+let getExpr f = match f with			(* Renvoie l'expression formelle associee a la func en parametre *)
+	| Fonction(_,_, ex) -> ex
+;;
+
+let applyFun fNom fVar operateur fonction = match fonction with		(* Transforme un operateur sur expr en operateur sur func *)
+	| Fonction(nom, var, expr) -> Fonction(fNom nom, fVar var, operateur expr)
+;;
+
+let id x = x;;					(* La fonction identite, pour ne pas modifier les attributs d'une func  
+						passee en parametre a applyFun *)
+
+(**************************************************************************************************************************************)
+(* Definition de la derivation par rapport a une variable *)
+
+let rec deriveExpr var ex = match ex with	(* Derive une expr par rapport a une variable *)
+	| Var(x) when x = var -> Int(1)
+	| Oppose(a) -> Oppose(deriveExpr var a)
+	| Plus(a, b) -> Plus(deriveExpr var a, deriveExpr var b)
+	| Mult(a, b) -> Plus(Mult(deriveExpr var a, b), Mult(a, deriveExpr var b))
+	| Minus(a, b) -> Minus(deriveExpr var a, deriveExpr var b)
+	| Div(a, b) -> Div(Minus(Mult(deriveExpr var a,  b), Mult(a, deriveExpr var b)), Mult(b, b))
+	| Exp(a) -> Mult(deriveExpr var a, Exp(a))
+	| _ -> Int(0) 
+;;
+let rec evalue ex v ey = match ex with  (*Remplace tous les motifs v par ey dans ex. Permet aussi bien d'evaluer en Int(_) que de composer *)
+	| Var(_) when ex = v -> ey
+	| Plus(a, b) -> Plus(evalue a v ey, evalue b v ey)
+	| Mult(a, b) -> Mult(evalue a v ey, evalue b v ey)
+	| Minus(a, b) -> Minus(evalue a v ey, evalue b v ey)
+	| Div(a, b) -> Div(evalue a v ey, evalue b v ey)
+	| Oppose(a) -> Oppose(evalue a v ey)
+	| Exp(a) -> Exp(evalue a v ey)
+	| _ -> ex
+;;
