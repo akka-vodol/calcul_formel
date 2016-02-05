@@ -55,3 +55,13 @@ let rec evalue ex v ey = match ex with  (*Remplace tous les motifs v par ey dans
 	| Exp(a) -> Exp(evalue a v ey)
 	| _ -> ex
 ;;
+
+(*quelques expressions pour tester les programmes*)
+let exp1 = Plus (Int 2, Int 3);;
+let exp2 = Plus (Int 4, Var "a");;
+let exp3 = Mult (Int 5, Var "a");;
+let exp4 = Mult ((Minus ((Int 5), (Var "a"))), (Plus ((Int 5), (Var "a"))));;
+let exp5 = Plus ((Div ((Int 2), (Int 3))), (Mult ((Div ((Int 5), (Int 3))), (Var "a"))));;
+let exp6 = Minus ((Mult ((Int 2), (Var "a"))), (Var "b"));;
+let exp7 = Mult ((Minus ((Var "b"), (Var "a"))), (Plus ((Var "b"), (Var "a"))));;
+let exp8 = Plus ((Var "a"), (Var "a"));;
