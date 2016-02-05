@@ -1,3 +1,18 @@
+(*fonction qui évalue la complexité d'une expression*)
+(*les coefficients choisis sont complètement arbitraires*)
+let rec fitness e = match e with
+ |Int i -> 3
+ |Var v -> 5
+ |Oppose a -> 1 + fitness a
+ |Plus (a, Plus(b, c)) -> 2 + (fitness a) + (fitness (Plus (b, c)))
+ |Plus (a, b) -> 20 + (fitness a) + (fitness b)
+ |Minus (a, b) -> 20 + (fitness a) + (fitness b)
+ |Mult (a, Mult(b, c)) -> 3 + (fitness a) + (fitness (Mult (b, c)))
+ |Mult (a, b) -> 25 + (fitness a) + (fitness b)
+ |Div (a, b) -> 40 + (fitness a) + (fitness b)
+ |Exp e2 -> fitness e2
+;;
+
 let simplifieExpr expression =		(* Simplification d'une expr *)
 	let rec aux ex = match ex with
 		| Plus(a, Int(0)) | Plus(Int(0), a) | Mult(Int(1), a) | Mult(a, Int(1)) | Div(a, Int(1)) | Oppose(Oppose(a)) -> let (e,_) = aux a in (e, true)
