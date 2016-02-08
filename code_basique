@@ -8,6 +8,7 @@ type expr =					(* La structure qui represente les expressions formelles *)
 	| Mult of expr*expr
 	| Minus of expr*expr	
 	| Div of expr*expr
+	| Pow of expr*int
 	| Exp of expr
 ;;
 
@@ -42,9 +43,15 @@ let rec deriveExpr var ex = match ex with	(* Derive une expr par rapport a une v
 	| Mult(a, b) -> Plus(Mult(deriveExpr var a, b), Mult(a, deriveExpr var b))
 	| Minus(a, b) -> Minus(deriveExpr var a, deriveExpr var b)
 	| Div(a, b) -> Div(Minus(Mult(deriveExpr var a,  b), Mult(a, deriveExpr var b)), Mult(b, b))
+	| Pow(a, 0) -> Int 0
+	| Pow(a, n) -> Mult (n, (Mult ((derivExpr a), (Pow (a, n-1)))))
 	| Exp(a) -> Mult(deriveExpr var a, Exp(a))
 	| _ -> Int(0) 
 ;;
+
+
+let derive f = applyFun (addStr "'") id (deriveExpr (getVar f)) f;;	(* Derive une func par rapport a sa variable *)
+
 let rec evalue ex v ey = match ex with  (*Remplace tous les motifs v par ey dans ex. Permet aussi bien d'evaluer en Int(_) que de composer *)
 	| Var(_) when ex = v -> ey
 	| Plus(a, b) -> Plus(evalue a v ey, evalue b v ey)
@@ -52,6 +59,7 @@ let rec evalue ex v ey = match ex with  (*Remplace tous les motifs v par ey dans
 	| Minus(a, b) -> Minus(evalue a v ey, evalue b v ey)
 	| Div(a, b) -> Div(evalue a v ey, evalue b v ey)
 	| Oppose(a) -> Oppose(evalue a v ey)
+	| Pow(a, n) -> Pow(evalue a v ey, n)
 	| Exp(a) -> Exp(evalue a v ey)
 	| _ -> ex
 ;;
