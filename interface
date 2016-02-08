@@ -1,4 +1,5 @@
 (* Definition des fonctions d'affichage *)
+(*A FAIRE : rajouter "Pow" dans les fonctions d'affichage*)
 
 let addStr ajout radical = String.concat "" [radical; ajout];;  (* Simplification de la fonction de concatenation d'Ocaml *)
 let concatStr strList = String.concat "" strList;;
