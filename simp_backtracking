@@ -1,0 +1,80 @@
+(*fonction qui évalue la complexité d'une expression*)
+(*les valeurs choisient sont complètement arbitraire*)
+let rec fitness e = match e with
+ |Int i -> 3
+ |Var v -> 5
+ |Oppose a -> 1 + fitness a
+ |Plus (a, Plus(b, c)) -> 2 + (fitness a) + (fitness (Plus (b, c)))
+ |Plus (a, b) -> 20 + (fitness a) + (fitness b)
+ |Minus (a, b) -> 20 + (fitness a) + (fitness b)
+ |Mult (a, Mult(b, c)) -> 3 + (fitness a) + (fitness (Mult (b, c)))
+ |Mult (a, b) -> 25 + (fitness a) + (fitness b)
+ |Div (a, b) -> 40 + (fitness a) + (fitness b)
+ |Exp e2 -> 50 + (fitness e2)
+;;
+
+let rec map f l = match l with
+ |[] -> []
+ |x :: q -> (f x) :: (map f q)
+;;
+
+let rec dl_to_l dl accu = match dl with
+  |[] -> accu
+  |[] :: dl2 -> dl_to_l dl2 accu
+  |(x :: q) :: dl2 -> dl_to_l (q :: dl2) (x :: accu)
+;;
+
+(*dbmap f l1 l2 renvoie la liste des (f x1 x2) pour tout x1 dans l1, x2 dans l2*)
+let dbmap f l1 l2 = 
+ let faux x = map (f x) l2 in
+ dl_to_l (dl_to_l (map faux l1) []) []
+;;
+
+let mixplus a b = match a, b with
+ |x, Int 0 -> [x]
+ |Int 0, x -> [x]
+ |(Int i), (Int j) -> [Int (i + j)]
+ |x, x -> [Plus (x, x), Mult((Int 2), x)]
+ |x, (Oppose x) -> [Int 0]
+ |(Mult (x, c)), (Mult (x, d)) -> [Plus (a, b); Plus (b, a); Mult (x, (Plus(c, d))); Mult ((Plus(c, d)), x)]
+ |a, b -> [(Plus (a, b)); (Plus (b, a))]
+;;
+
+let mixminus a b = match a, b with
+ |x, Int 0 -> [x]
+ |Int 0, x -> [Oppose x]
+ |(Int i), (Int j) -> [Int (i - j)]
+ |x, x -> [Int 0]
+ |x, (Oppose x) -> [Plus (x, x)]
+ |(Mult (x, c)), (Mult (x, d)) -> [Minus (a, b); Oppose (Minus (b, a)); Mult (x, (Minus(c, d)))]
+ |a, b -> [(Minus (a, b)); (Oppose (Minus (b, a)))]
+;;
+
+let mixmult a b = match a, b with
+ |x, Int 0 -> [Int 0]
+ |x, Int 1 -> [x]
+ |Int 0, x -> [Int 0]
+ |Int 1, x -> [x]
+ |Int i, Int j -> [Int (i*j)]
+ |(Plus (a, b)), (Minus (a, b)) -> [Minus (Pow (a, 2), Pow (b, 2)); Mult ((Plus (a, b)), (Minus (a, b))); Mult (Minus (a, b), (Plus (a, b)))]
+ |a, (Oppose b) -> [Mult (a, (Oppose b));Mult (Oppose ((Oppose a), b))]
+ |a, b -> [Mult (a, b); Mult (b, a)]
+;;
+
+(*reçoit une expression, renvoie une liste de toutes les reformulations possibles*)
+let rec remix e = match e with
+ |Int i -> [Int i]
+ |Var v -> [Var v]
+ |Oppose x -> 
+ |Plus a, b -> dbmap mixplus (remix a) (remix b)
+ |Minus a, b -> dbmap mixminus remix (remix a) (remix b)
+ |Mult a, b -> dbmap mixmult (remix a) (remix b)
+ |Div a, b -> dbmap mixdiv (remix a) (remix b)
+ |Pow a, n -> dbmap mixpow (remix a) n
+ |exp a, b -> dbmap mixexp (remix a) (remix b)
+;;
+
+let rec best_in_list l e m = match l with
+ |[] -> m
+ |x :: q -> let m2 = (fitness x) in minlist q (if m > m2 then e else x) (if m > m2 then m else m2)
+;;
