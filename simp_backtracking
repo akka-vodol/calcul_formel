@@ -66,12 +66,12 @@ let rec remix e = match e with
  |Int i -> [Int i]
  |Var v -> [Var v]
  |Oppose x -> 
- |Plus a, b -> dbmap mixplus (remix a) (remix b)
- |Minus a, b -> dbmap mixminus remix (remix a) (remix b)
- |Mult a, b -> dbmap mixmult (remix a) (remix b)
- |Div a, b -> dbmap mixdiv (remix a) (remix b)
- |Pow a, n -> dbmap mixpow (remix a) n
- |exp a, b -> dbmap mixexp (remix a) (remix b)
+ |Plus (a, b) -> dbmap mixplus (remix a) (remix b)
+ |Minus (a, b) -> dbmap mixminus remix (remix a) (remix b)
+ |Mult (a, b) -> dbmap mixmult (remix a) (remix b)
+ |Div (a, b) -> dbmap mixdiv (remix a) (remix b)
+ |Pow (a, n) -> dbmap mixpow (remix a) n
+ |exp a -> dbmap mixexp (remix a)
 ;;
 
 let rec best_in_list l e m = match l with
